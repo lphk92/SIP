@@ -4,15 +4,16 @@
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{url}
+\usepackage{framed}
 \usepackage[title]{appendix}
 \usepackage[hang,flushmargin]{footmisc}
-\captionsetup{font=small}
 
+\captionsetup{font=small}
 \newcommand{\code}[1]{\texttt{#1}}
 
 \title{Record Locking Methods in the System for Managing Academic Records and Transcripts}
 \author{Lucas Kushner}
-\date{2013}
+\date{\today}
 
 \begin{document}
 
@@ -25,6 +26,10 @@
 
 \pagenumbering{roman}
 \doublespace
+
+\section*{Abstract}
+
+\newpage
 
 \section*{Acknowledgements}
 This is where my acknowledgements will go.
@@ -146,6 +151,69 @@ INCLUDE EXAMPLE CODE/PSEUDOCODE HERE
 One of the primary advantages present in using an optimistic system as opposed to a pessimistic one is that all users are able to edit data simultaneously, only being locked out at the time of submission. If good systems are implemented for managing conflicts, optimistic systems have the potential to allow for much more efficient editing by many users. However, this method puts more responsibility on the user to keep make the appropriate decisions when dealing with conflicts and merging data. Furthermore, if conflicts are significant, than it may not be clear what is correct. While it creates the opportunity for concurrent data modification, optimistic record locking also opens up the possibility of significant frustrations for the end user.
 
 \begin{appendices}
+\clearpage
+\section{Activity Documentation}
+Activities in SMART provide the core navigation of the software, organizing specific tables and tasks in related groups, and giving the user the ability to find and edit the data that they need. They are specified in settings files ending in the .act file extension.
+
+These files consist of an activity list specification, defining the activities to include in the list in the order in which they should appear. The valid types of activities are listed below, along with their required attributes which must also be defined in the file:
+
+\begin{framed}
+separator (A horizontal separator)
+    -- No properties required
+comment (A textual comment to give information about the activity)
+    -- comment: The text of the comment to be displayed
+setting (“sequence” is a synonym) (Redirects the user to a Table)
+    -- title: A short title (should fit into a button)
+    -- description: A brief description of the setting referred to
+    -- source: The source for the setting (the name of the Table Setting file, without suffix)
+report (Generates a specific report using existing data, see Report specifications)
+    -- title: A short title (should fit into a button)
+    -- description: A brief description of the setting referred to
+    -- source: The source for the setting (the name of the Table Setting file, without suffix)
+html
+    -- html: The html to be rendered
+controllerAction (Fires a particular controller action in Zend)
+    -- title: A short title (should fit into a button)
+    -- description: A brief description of the setting referred to
+    -- controller: The controller to use
+    -- action: The action to use
+    -- parameter: Parameter string using key1=param1\&key2=param2 format
+url (Redirects the user to a webpage)
+    -- title: A short title (should fit into a button)
+    -- description: A brief description of the setting referred to
+    -- url: The url address to go to
+activityList (Redirects the user to another Activity)
+    -- title: A short title (should fit into a button)
+    -- description: A brief description of the setting referred to
+    -- source: The source for the setting (the name of the Table Setting file, without suffix)
+\end{framed}
+
+\clearpage
+\section{Table Documentation}
+
+\clearpage
+\section{System Specifications}
+
+For development purposes, our backend for the SMART system used a Cross-platform Apache, MySQL and PHP distribution known as XAMPP. This package allows for the easy installation of these various components, as well as providing default configurations for easy use. Additionally, we used Zend Framework 1.12 library for the backbone of the application. Although Zend is currently in version 2, we continued using 1.12 because much of SMART had been written in years prior to the new version, and a variety of significant changes were made to the framework that could not be easily updated within the existing project.
+
+Further investigation is still needed to determine the minimum possible hardware and software system requirements for SMART. Most tests and development discussed in this paper have taken place on a Linux system, with software specifications as outlined below:
+\\
+
+\begin{spacing}{1.0}
+\noindent\textbf{Machine} \\
+Linux Mint 14 Nadia \\
+Intel Core i5 M430 @ 2.27 GHz \\
+
+\noindent\textbf{Development Software} \\
+XAMPP for Linux (1.8.1) \\
+Apache (2.4.3) \\
+MySQL (5.5.27) \\
+PHP (5.4.7) \\
+phpMyAdmin (3.5.2.2) \\
+Zend Framework (1.12.3) \\
+VIM - Vi IMproved (7.4)
+\end{spacing}
+
 
 \end{appendices}
 
