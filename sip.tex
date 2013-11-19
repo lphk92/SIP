@@ -1,6 +1,7 @@
 \documentclass[12pt]{article}
 
 \usepackage{setspace}
+\usepackage{indentfirst}
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{url}
@@ -126,7 +127,7 @@ Our solution to this problem is to instead create a new database table which mai
 \begin{figure}[h]
     \centering
     \centerline{\includegraphics[width=7in]{diagrams/SecondLockDesign.png}}
-    \begin{spacing}{1.0}\caption{Captions goes here.}\end{spacing}
+    \begin{spacing}{1.0}\caption{Flow of control for the updated locking solution in SMART. We see that the program checks the \code{ramp\_locks} table for the defition of locking relatoinships, and uses those values to enforce locking at the database level.}\end{spacing}
 \end{figure}
 \end{center}
 
@@ -149,6 +150,14 @@ Alternatively, depending on the structure and purpose of the application an opti
 INCLUDE EXAMPLE CODE/PSEUDOCODE HERE
 
 One of the primary advantages present in using an optimistic system as opposed to a pessimistic one is that all users are able to edit data simultaneously, only being locked out at the time of submission. If good systems are implemented for managing conflicts, optimistic systems have the potential to allow for much more efficient editing by many users. However, this method puts more responsibility on the user to keep make the appropriate decisions when dealing with conflicts and merging data. Furthermore, if conflicts are significant, than it may not be clear what is correct. While it creates the opportunity for concurrent data modification, optimistic record locking also opens up the possibility of significant frustrations for the end user.
+
+\newpage
+
+\section{Conclusion}
+
+\subsection{Summary}
+
+\subsection{The Future of SMART}
 
 \begin{appendices}
 \clearpage
