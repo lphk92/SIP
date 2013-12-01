@@ -29,6 +29,14 @@
 \doublespace
 
 \section*{Abstract}
+\begin{verbatim}
+ToDo
+- Change all timestamp to lock_time
+- Change all recordId to key
+- Change all userId to locker
+- Acknowledgements
+- Update section 3 to reflect the Unified lock table
+\end{verbatim}
 
 \newpage
 
@@ -65,6 +73,7 @@ Zend is a popular, modular implementation of a Model-View-Controller (MVC) frame
     \begin{center}
         \centerline{\includegraphics[width=2.1in]{diagrams/MVC.png}}
     \end{center}
+    \vspace{-20pt}
     \begin{spacing}{1.0}\caption{A simple diagram of a Model-View-Controller layout\protect\footnotemark}\end{spacing}
 \end{figure}
 
@@ -77,6 +86,7 @@ In SMART, Activities can be thought of as a way for the user to navigate through
 Tables are at the heart of SMART's functionality. Without a clean and secure way of accessing and manipulating data, users would not be able to effectively and efficiently achieve their record management goals. In SMART all Tables are defined in configuration files known as Table Settings. These files outline which tables from the database are to be used, which columns should be shown, and specify the labels and formatting of each field. Additionally, Table Settings can outline connections between different database tables, and consolidate data from multiple sources into one Table that is displayed to the user, allowing for the construction of easy-to-use structures that abstract away the underlying complexity of the database. For full documentation about Tables, please refer to Appendix B.
 
 \begin{figure}[h]
+    \vspace{10pt}
     \begin{center}
         \centerline{\includegraphics[width=3.5in]{diagrams/SMARTAccess.png}}
     \end{center}
@@ -93,6 +103,7 @@ With optimistic locking, multiple users are allowed to continue editing the data
 
 On the other hand, the pessimistic locking strategy uses what is called a “lock table” to lock specific records, and keep track of who is editing a given record. This table includes the unique ID of the record, the user that is editing it, and the timestamp marking when the user gained access to the record. Whenever a user attempts to edit a record, the lock table is checked to see if the record in question is already being edited. In that case, the user is then immediately notified that a change is in progress, and must wait until that change is submitted before attempting to make their edits. Often, the user will receive a notification once the data has been unlocked, and the page will automatically display the editable data. Although this system is much stricter in its protection of the data, this can lead to an additional problem. In the case known as “deadlock”, two locked processes are waiting for each other to finish before they are able to unlock. Because of this possibility, careful database and software design is necessary when choosing to lock data in a pessimistic fashion.
 
+\newpage
 \section{Record Locking in SMART}
 
 \subsection{Challenges and Considerations}
@@ -112,6 +123,7 @@ In general, pessimistic systems tend to have some sort of mechanism for notifyin
     \centering
     \centerline{\includegraphics[width=7in]{diagrams/InitialLockDesign.png}}
     \begin{spacing}{1.0}\caption{Design of initially proposed locking system. When the user requests a particular record, the record and user IDs are sent to SMART, which then checks the appropriate lock table and notifies the user if there is a lock. In this model, SMART is programmed with knowledge of the lock table structure in the database.}\end{spacing}
+    \vspace{-20pt}
 \end{figure}
 \end{center}
 
@@ -125,14 +137,30 @@ Our solution to this problem is to instead create a new database table which mai
 
 \begin{center}
 \begin{figure}[h]
+    \vspace{-10pt}
     \centering
     \centerline{\includegraphics[width=7in]{diagrams/SecondLockDesign.png}}
     \begin{spacing}{1.0}\caption{Flow of control for the updated locking solution in SMART. We see that the program checks the \code{ramp\_locks} table for the defition of locking relatoinships, and uses those values to enforce locking at the database level.}\end{spacing}
+    \vspace{-10pt}
 \end{figure}
 \end{center}
 
 As shown in the figure above, the proposed \code{ramp\_locks} table contains three columns: \code{table}, \code{lock\_table}, and \code{lock\_field}. As one might expect, \code{table} and \code{lock\_table} specify the name of the table in the database and the corresponding \code{lock\_table} which will manage its locks. Beyond these basic record locking components, the \code{lock\_field} column gives this particular locking mechanism enhanced flexibility. Ultimately, the entry in \code{lock\_field} will correspond to the \code{recordId} column of the \code{lock\_table}. Because any column in the table can be used in \code{lock\_field}, this allows for both primary and foreign keys to be used as a locking trigger, which in turn creates the possibility for powerful locking schemes on tables that pull data from multiple sources. In the example shown in the figure, when a user begins editing a particular entry in the Staff table, SMART will use the value of Staff.staffId as the lock in \code{lock\_person}. Because of this, if another user tries to edit the Person with that ID from any other part of SMART, they will be notified that the resource is locked. In this way, record locks are able to be persistent regardless of what particular Activity they originate from. This feature of our record locking system is the critical component in establishing a technique that can handle the requirements of SMART.
 
+\subsection{A Unified Lock Table}
+The above management of locking relationships allows locking to be forced on the database level. However, this system still involves many necessary alterations to the database for any particular system, specifically, adding lock tables for each of the appropriate database tables. If at all possible, SMART will operate in such a way that minimal changes are necessary when adapting to a new system. To address this issue, we propose maintaining the same method for defining locking relationships in the \code{ramp\_locks} table, but unifying the lock tables into one required table (ie. \code{ramp\_locks\_locks}), in which all existing locks are stored.
+
+\begin{center}
+\begin{figure}[h]
+    \centering
+    \centerline{\includegraphics[width=7in]{diagrams/UnifiedLockDesign.png}}
+    \begin{spacing}{1.0}\caption{Caption will go here.}\end{spacing}
+\end{figure}
+\end{center}
+
+This master lock table would need to contain more detailed information than the generic locking table structure discussed previously. For example, since we are using one table to maintain locks for any number of tables, it is necessary to keep track of which table a particular lock belongs to, in addition to its \code{recordId} and \code{userId}. By checking all three of these criteria, it is possible to maintain very specific locks on particular records using only one table, while maintaining the data relationships on which to lock in another table. The end result of such a locking system is shown in the figure below.
+
+\newpage
 \section{Alternative Implementations and Solutions}
 
 Throughout this paper, the majority of our exploration of record locking has been specifically attuned to the needs and nature of SMART. However, the development of our implementation and its various features and components involved in-depth analysis of this specific system, and the consideration of a variety of possibilities. Next, we will discuss alternative systems for record locking, including potential features for other pessimistic systems, and optimistic alternatives.
@@ -140,14 +168,47 @@ Throughout this paper, the majority of our exploration of record locking has bee
 \subsection{Pessimistic Systems}
 One such additional feature for a pessimistic system would be a mechanism for notifying a locked-out user when the desired resource has become available, as described previously. Such a notification typically involves an Asynchronous Javascript and XML (AJAX) function call that pings the server at regular intervals to check if the data is still locked. Once the record is unlocked, the user is then redirected to the editing page, which has been populated with the recently updated information. In such a system as this, it is also necessary to implement some form of access queue, to handle the scenario in which several users attempt to access the same page while a record is being edited. This access queue could be implemented relatively easily by performing additional logic when checking a record's availability, as demonstrated in the code fragment below.
 
-INCLUDE EXAMPLE CODE/PSEUDOCODE HERE
+\begin{framed}
+\begin{spacing}{1.0}
+\begin{verbatim}
+function checkLock($recordId, $userId)
+    // Access queue logic is implemented by ordering 
+    // by time and seelcting only the most recent lock
+    $lockRow = SELECT * FROM locks
+               WHERE recordId=$recordId 
+               ORDER BY lock_time ASC LIMIT 1;
+    if ($lockRow['userId'] == $userId)
+        return true;
+    else
+        return false;
+
+\end{verbatim}
+\end{spacing}
+\end{framed}
 
 As opposed to our method of managing lock relationships using a separate \code{ramp\_locks} table in addition to a variety of lock tables, it would be possible for the database to be setup in such a way that every table had its own \code{lock\_table}. In this case, the software would simply need knowledge of which tables were being accessed to immediately know which lock tables to use. For systems where there are numerous tables, many of which contain sensitive and frequently accessed information, a solution such as this may be the most appropriate.
 
 \subsection{Optimistic Systems}
-Alternatively, depending on the structure and purpose of the application an optimistic locking system may make more sense. In SMART, the sensitivity of data and workflow of academic records management implied that the use of pessimistic record locking was better suited for the project. Scenarios in which an optimistic solution would be better suited include cases where it is unviable to make all users wait to edit a certain record, or where many unrelated users are accessing data from different locations. A perfect example of this kind of system is a large, wiki type website, such as Wikipedia. In optimistic systems such as these, typically the program must manage version numbers on all edits to records. When a user attempts to write data, the original version number is included with the submitted data and checked against the version number stored in the lock table. If there is a versioning conflict (ie. if another user has submitted new data during the interval that the initial user was editing), the user is then notified and must handle any conflicting data. 
+Alternatively, depending on the structure and purpose of the application an optimistic locking system may make more sense. In SMART, the sensitivity of data and workflow of academic records management implied that the use of pessimistic record locking was better suited for the project. Scenarios in which an optimistic solution would be better suited include cases where it is unviable to make all users wait to edit a certain record, or where many unrelated users are accessing data from different locations. A perfect example of this kind of system is a large, wiki type website, such as Wikipedia. In optimistic systems such as these, typically the program must manage version numbers on all edits to records. When a user attempts to write data, the original version number is included with the submitted data and checked against the version number stored in the lock table. If there is a versioning conflict (ie. if another user has submitted new data during the interval that the initial user was editing), the user is then notified and must handle any conflicting data, as demonstrated in the snippet below.
 
-INCLUDE EXAMPLE CODE/PSEUDOCODE HERE
+\begin{framed}
+\begin{spacing}{1.0}
+\begin{verbatim}
+function submitData($recordId, $userId, $data)
+    $dataRow = SELECT * FROM data_table 
+               WHERE recordId=$recordId;
+    if ($dataRow['version'] == $data['version'])
+        UPDATE data_table
+        SET version=$data['version'], ...
+        WHERE recordId=$recordId
+    else
+        // If there was a conflict, send them to a
+        // page to sort out conflicting data
+        redirectToConflictPage($recordId, $data)
+
+\end{verbatim}
+\end{spacing}
+\end{framed}
 
 One of the primary advantages present in using an optimistic system as opposed to a pessimistic one is that all users are able to edit data simultaneously, only being locked out at the time of submission. If good systems are implemented for managing conflicts, optimistic systems have the potential to allow for much more efficient editing by many users. However, this method puts more responsibility on the user to make the appropriate decisions when dealing with conflicts and merging data. Furthermore, if the conflicts are significant, than it may not be clear which is correct. While it creates the opportunity for concurrent data modification, optimistic record locking also opens up the possibility of significant frustrations for the end user.
 
