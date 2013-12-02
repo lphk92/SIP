@@ -12,6 +12,17 @@
 \captionsetup{font=small}
 \newcommand{\code}[1]{\texttt{#1}}
 
+\let\olditemize\itemize
+\renewcommand{\itemize}
+{
+    \vspace{-12pt}
+    \olditemize
+    \setlength{\itemsep}{1pt}
+    \setlength{\parskip}{0pt}
+    \setlength{\parsep}{0pt}
+}
+\renewcommand{\labelitemi}{-}
+
 \title{Record Locking Methods in the System for Managing Academic Records and Transcripts}
 \author{Lucas Kushner}
 \date{\today}
@@ -34,14 +45,16 @@ ToDo
 - Change all timestamp to lock_time
 - Change all recordId to key
 - Change all userId to locker
-- Acknowledgements
 - Update section 3 to reflect the Unified lock table
+- Future of SMART
 \end{verbatim}
 
 \newpage
 
 \section*{Acknowledgements}
-This is where my acknowledgements will go.
+First and foremost I would like to thank Dr. Alyce Brady for all of her support and efforts of the SMART project. it is only through her vision and work that this project is able to exist and progress, and I am extremely grateful to have the opportunity to work toward such a meaningful and profound goal. Additionally, I would like to thank Dr. Pam Cutter for her assistance and feedback throughout the various stages of writing this paper was greatly appreciated.
+
+Also, I would like to thank Kyle Sunden and Ashton Galloway, who had previously worked on the RAMP and SMART projects, and whose assistance helped me through various difficulties during setup and installation of SMART and its associated tools.
 
 \newpage
 
@@ -139,7 +152,7 @@ Our solution to this problem is to instead create a new database table which mai
 \begin{figure}[h]
     \vspace{-10pt}
     \centering
-    \centerline{\includegraphics[width=7in]{diagrams/SecondLockDesign.png}}
+    \centerline{\includegraphics[width=6.5in]{diagrams/SecondLockDesign.png}}
     \begin{spacing}{1.0}\caption{Flow of control for the updated locking solution in SMART. We see that the program checks the \code{ramp\_locks} table for the defition of locking relatoinships, and uses those values to enforce locking at the database level.}\end{spacing}
     \vspace{-10pt}
 \end{figure}
@@ -230,34 +243,53 @@ Activities in SMART provide the core navigation of the software, organizing spec
 These files consist of an activity list specification, defining the activities to include in the list in the order in which they should appear. The valid types of activities are listed below, along with their required attributes which must also be defined in the file:
 
 \begin{framed}
+\begin{spacing}{1.0}
+\noindent
 separator (A horizontal separator)
-    -- No properties required
+\begin{itemize}
+    \item No properties required
+\end{itemize}
 comment (A textual comment to give information about the activity)
-    -- comment: The text of the comment to be displayed
+\begin{itemize}
+    \item comment: The text of the comment to be displayed
+\end{itemize}
 setting (“sequence” is a synonym) (Redirects the user to a Table)
-    -- title: A short title (should fit into a button)
-    -- description: A brief description of the setting referred to
-    -- source: The source for the setting (the name of the Table Setting file, without suffix)
-report (Generates a specific report using existing data, see Report specifications)
-    -- title: A short title (should fit into a button)
-    -- description: A brief description of the setting referred to
-    -- source: The source for the setting (the name of the Table Setting file, without suffix)
+\begin{itemize}
+    \item title: A short title (should fit into a button)
+    \item description: A brief description of the setting referred to
+    \item source: The source for the setting (the name of the Table Setting file, without suffix)
+\end{itemize}
+report (Generates a specific report using existing data)
+\begin{itemize}
+    \item title: A short title (should fit into a button)
+    \item description: A brief description of the setting referred to
+    \item source: The source for the setting (the name of the Table Setting file, without suffix)
+\end{itemize}
 html
-    -- html: The html to be rendered
+\begin{itemize}
+    \item html: The html to be rendered
+\end{itemize}
 controllerAction (Fires a particular controller action in Zend)
-    -- title: A short title (should fit into a button)
-    -- description: A brief description of the setting referred to
-    -- controller: The controller to use
-    -- action: The action to use
-    -- parameter: Parameter string using key1=param1\&key2=param2 format
+\begin{itemize}
+    \item title: A short title (should fit into a button)
+    \item description: A brief description of the setting referred to
+    \item controller: The controller to use
+    \item action: The action to use
+    \item parameter: Parameter string using key1=param1\&key2=param2 format
+\end{itemize}
 url (Redirects the user to a webpage)
-    -- title: A short title (should fit into a button)
-    -- description: A brief description of the setting referred to
-    -- url: The url address to go to
+\begin{itemize}
+    \item title: A short title (should fit into a button)
+    \item description: A brief description of the setting referred to
+    \item url: The url address to go to
+\end{itemize}
 activityList (Redirects the user to another Activity)
-    -- title: A short title (should fit into a button)
-    -- description: A brief description of the setting referred to
-    -- source: The source for the setting (the name of the Table Setting file, without suffix)
+\begin{itemize}
+    \item title: A short title (should fit into a button)
+    \item description: A brief description of the setting referred to
+    \item source: The source for the setting (the name of the Table Setting file, without suffix)
+\end{itemize}
+\end{spacing}
 \end{framed}
 
 \clearpage
