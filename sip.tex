@@ -1,5 +1,6 @@
 \documentclass[12pt]{article}
 
+\usepackage{verbatim}
 \usepackage{setspace}
 \usepackage{indentfirst}
 \usepackage{graphicx}
@@ -94,9 +95,9 @@ Zend is a popular, modular implementation of a Model-View-Controller (MVC) frame
 
 Along with the expansive and powerful set of application development tools provided by Zend Framework and the MVC paradigm, the robust flexibility of SMART is possible primarily due to two of its key features: Activities and Tables\footnote{Throughout this paper, we will be using the capitalized word "Table" in reference to Tables that are defined in SMART by Table Settings, whereas the lowercase word "table" will be used in reference to tables in the database.}. 
 
-In SMART, Activities can be thought of as a way for the user to navigate through the program and find the data they are looking for. In essence, an Activity is a webpage which provides a submenu presenting a certain set of Tables that a user can view, gathered under a common heading. However, like much of SMART these Activities are defined not explicitly in code, but in separate configuration files, making them easy to rearrange, modify, and expand. In addition to redirecting users to specific Tables, there are a variety of other Activities that can be used to display information or fire specific actions. For full documentation about Activities, please refer to Appendix A.
+In SMART, Activities can be thought of as a way for the user to navigate through the program and find the data they are looking for. In essence, an Activity is a webpage which provides a submenu presenting a certain set of Tables that a user can view, gathered under a common heading. However, like much of SMART these Activities are defined not explicitly in code, but in separate configuration files, making them easy to rearrange, modify, and expand. In addition to redirecting users to specific Tables, there are a variety of other Activities that can be used to display information or fire specific actions. % For full documentation about Activities, please refer to Appendix A.
 
-Tables are at the heart of SMART's functionality. Without a clean and secure way of accessing and manipulating data, users would not be able to effectively and efficiently achieve their record management goals. In SMART all Tables are defined in configuration files known as Table Settings. These files outline which tables from the database are to be used, which columns should be shown, and specify the labels and formatting of each field. Additionally, Table Settings can outline connections between different database tables, and consolidate data from multiple sources into one Table that is displayed to the user, allowing for the construction of easy-to-use structures that abstract away the underlying complexity of the database. For full documentation about Tables, please refer to Appendix B.
+Tables are at the heart of SMART's functionality. Without a clean and secure way of accessing and manipulating data, users would not be able to effectively and efficiently achieve their record management goals. In SMART all Tables are defined in configuration files known as Table Settings. These files outline which tables from the database are to be used, which columns should be shown, and specify the labels and formatting of each field. Additionally, Table Settings can outline connections between different database tables, and consolidate data from multiple sources into one Table that is displayed to the user, allowing for the construction of easy-to-use structures that abstract away the underlying complexity of the database. % For full documentation about Tables, please refer to Appendix B.
 
 \begin{figure}[h]
     \vspace{10pt}
@@ -234,8 +235,10 @@ Throughout this paper, we have explored various potential solutions to the probl
 By considering the merits and disadvantages of both pessimistic and optimistic systems, it was concluded that a strongly pessimistic approach was the most appropriate for meeting the needs of SMART. In addition to the traditional methodology of pessimistic record locking, it was necessary for us to include an additional layer of logic to preserve the dynamically defined table structure that is characteristic to SMART. To address this, we propose defining database locking relations in a required table called \code{ramp\_locks}, thereby enforcing record locking on a database level. While such a system adds additional overhead for an institution setting up SMART, it creates secure locking relationships that can maintain the integrity of data throughout the application.
 
 \subsection{The Future of SMART}
+By outlining a robust record locking system, as done in this paper, we hope to provide the framework for a vital core component of the SMART system. 
 
 \begin{appendices}
+\begin{comment}
 \clearpage
 \section{Activity Documentation}
 Activities in SMART provide the core navigation of the software, organizing specific tables and tasks in related groups, and giving the user the ability to find and edit the data that they need. They are specified in settings files ending in the .act file extension.
@@ -294,6 +297,7 @@ activityList (Redirects the user to another Activity)
 
 \clearpage
 \section{Table Documentation}
+\end{comment}
 
 \clearpage
 \section{System Specifications}
