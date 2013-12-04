@@ -1,3 +1,4 @@
+# Ignore everything in bin except the pdf
 bin/*
 !bin/sip.pdf
 

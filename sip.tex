@@ -235,7 +235,9 @@ Throughout this paper, we have explored various potential solutions to the probl
 By considering the merits and disadvantages of both pessimistic and optimistic systems, it was concluded that a strongly pessimistic approach was the most appropriate for meeting the needs of SMART. In addition to the traditional methodology of pessimistic record locking, it was necessary for us to include an additional layer of logic to preserve the dynamically defined table structure that is characteristic to SMART. To address this, we propose defining database locking relations in a required table called \code{ramp\_locks}, thereby enforcing record locking on a database level. While such a system adds additional overhead for an institution setting up SMART, it creates secure locking relationships that can maintain the integrity of data throughout the application.
 
 \subsection{The Future of SMART}
-By outlining a robust record locking system, as done in this paper, we hope to provide the framework for a vital core component of the SMART system. 
+By outlining a robust record locking system, as done in this paper, we hope to provide the framework for implementing a vital component of the SMART system. However, much still remains to be done before SMART is ready to be used in full production. Included among the remaining key functionality requriements are database audit trails, more advanced reporting, and support for searching within user-specified date ranges. Although in its current form SMART can be used by an institution to begin the arduous process of data entry, it cannot be used as a full-featured record management system until these and more components are complete.
+
+As the development of SMART continues onward, the project continue to aim forward to creating a system which is stable, open, and capable of handling the myriad of needs held by an academic institution. One day, we hope that SMART will be a project that any institution can adopt and adapt to provide reliable electronic records management and administration.
 
 \begin{appendices}
 \begin{comment}
