@@ -41,12 +41,9 @@
 \doublespace
 
 \section*{Abstract}
-\begin{verbatim}
-ToDo
-- Rename ramp_locks to ramp_lock_relations
-- Update all diagrams to reflect name changes
-- Add part about expiring locks
-\end{verbatim}
+After a long and infrastructurally devasting civil war, the nation of Sierra Leone remains in the process of rebuilding. Two major academic institutions - Njala University and the University of Sierra Leone - have outlined electronic records management and administrations as a significant priority to maximize resources and drive the universities toward reaching institutional goals. Currently, an Open Source project known as the System for Managing Academic Records and Transcripts (SMART) is being developed in order to address this issue and provide accessible solutions to academic electronic records management needs.
+
+We propose the design of a robust, flexible mechanism for database record-level locking in SMART. The system is designed in such a way that the underlying structure of the database is not explicitly written in code, but instead communicated via a series of configuration files, presenting an interesting problem in creating database-enforced locking schemes that are independent of different application database schema. We propose the creationg of two SMART-assumed tables: one to define locking relations for the particular database, and the other to manage the record locks themselves. Additionally we discuss the design process leading to the development of this idea, the specifics of how it could be implemented, and an overview of the various characteristics, advantages, and disadvantages of record locking systems.
 
 \newpage
 
@@ -195,6 +192,32 @@ function checkLock($key, $locker)
     // by time and selecting only the most recent lock
     $lockRow = SELECT * FROM locks
                WHERE key=$key
+               ORDER BY lock_time ASC LIMIT 1;
+    if ($lockRow['locker'] == $locker)
+        return true;
+    else
+        return false;
+
+\end{verbatim}
+\end{spacing}
+\end{framed}
+
+Another useful feature might be to expire locks after a certain period of time. Imagine a scenario in which an invidiaul begins editing a record in a pessmistic system, and suddenly their computer or browser crashes. In this case, they never released the lock by submitting their data, and so any other user that tries to edit that record will be locked out. Of course, a system administrator could manually release the lock from the database, however having the system automatically release locks after some period of time may be more efficient. The programmatic logic involved in implementing such a feature is outlined below. Note that part of this snippet is uses tools from Zend Framework.
+
+\newpage
+
+\begin{framed}
+\begin{spacing}{1.0}
+\begin{verbatim}
+function checkLock($key, $locker)
+    // Determine the oldest lock_time that will be allowed
+    $minTime = Zend_Date::now();
+    $minTime->sub(15, Zend_Date::MINUTE); //15-minute timeout
+    $minTime = $minTime->toString("YYYY-MM-dd HH:mm:ss");
+
+    $lockRow = SELECT * FROM locks
+               WHERE key=$key AND
+                     lock_time<TIMESTAMP('$minTime');
                ORDER BY lock_time ASC LIMIT 1;
     if ($lockRow['locker'] == $locker)
         return true;
