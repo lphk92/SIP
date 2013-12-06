@@ -177,7 +177,7 @@ Additionally, because SMART will assume the existence of \code{ramp\_lock\_locks
 \begin{figure}[h]
     \centering
     \centerline{\includegraphics[width=7in]{diagrams/UnifiedLockDesign.png}}
-    \begin{spacing}{1.0}\caption{Caption will go here.}\end{spacing}
+    \begin{spacing}{1.0}\caption{Record locking in SMART using one, unified lock table for managing all locks. The \code{ramp\_lock\_locks} table will use the \code{lock\_table} value from \code{ramp\_locks} as the value of the \code{table} column, making it possible to distinguish records which belong to different tables in the database.}\end{spacing}
 \end{figure}
 \end{center}
 
