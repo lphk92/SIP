@@ -43,11 +43,9 @@
 \section*{Abstract}
 \begin{verbatim}
 ToDo
-- Change all timestamp to lock_time
-- Change all recordId to key
-- Change all userId to locker
-- Update section 3 to reflect the Unified lock table
-- Future of SMART
+- Rename ramp_locks to ramp_lock_relations
+- Update all diagrams to reflect name changes
+- Add part about expiring locks
 \end{verbatim}
 
 \newpage
@@ -117,7 +115,7 @@ One standard solution to deal with this issue is known as "record locking". Reco
 
 With optimistic locking, multiple users are allowed to continue editing the data simultaneously. The data is only locked when a specific user actually writes their changes to the database. In this situation, whenever a user attempts to write their data, a version number is checked to verify that no new data is present. Only then will the user be notified that a conflict has occurred, at which point they must edit their data again and retry. This method allows several users to continue editing data while still locking the data when it is written. However, the last minute notification of data changes could prove frustrating or confusing to the user.
 
-On the other hand, the pessimistic locking strategy uses what is called a "lock table" to lock specific records, and keep track of who is editing a given record. This table includes the unique ID of the record, the user that is editing it, and the time at which the user gained access to the record. Whenever a user attempts to edit a record, the lock table is checked to see if the record in question is already being edited. In that case, the user is then immediately notified that a change is in progress, and must wait until that change is submitted before attempting to make their edits. Often, the user will receive a notification once the data has been unlocked, and the page will automatically display the editable data. Although this system is much stricter in its protection of the data, this can lead to an additional problem. In the case known as "deadlock", two locked processes are waiting for each other to finish before they are able to unlock. Because of this possibility, careful database and software design is necessary when choosing to lock data in a pessimistic fashion.
+On the other hand, the pessimistic locking strategy uses what is called a "lock table" to lock specific records, and keep track of who is editing a given record. This table includes the unique ID of the record (referred to as the "key"), the user that is editing it (referred to as the "locker"), and the time at which the user gained access to the record (referred to as "lock time"). Whenever a user attempts to edit a record, the lock table is checked to see if the record in question is already being edited. In that case, the user is then immediately notified that a change is in progress, and must wait until that change is submitted before attempting to make their edits. Often, the user will receive a notification once the data has been unlocked, and the page will automatically display the editable data. Although this system is much stricter in its protection of the data, this can lead to an additional problem. In the case known as "deadlock", two locked processes are waiting for each other to finish before they are able to unlock. Because of this possibility, careful database and software design is necessary when choosing to lock data in a pessimistic fashion.
 
 \newpage
 \section{Record Locking in SMART}
@@ -150,7 +148,7 @@ After coming up with an initial design we set out to begin implementation, and i
 
 One approach would be to define specific locks for each field of a Table in the Table Setting file. This is the approach used by SMART for mapping specific fields that the user sees to the corresponding database table. The issue arises when considering the possibility of an incorrectly defined Table Setting. Imagine that a user creates a new table setting but neglects to set up the locking mechanisms. If such mechanisms were purely defined by the files, the possibility exists for a user to create a Table without any locking, exposing a significant vulnerability in a fundamental part of the system.
 
-Our solution to this problem is to instead create a new database table which maintains the information about mapping specific data to its appropriate lock table. Currently, SMART assumes the existence of only two specific tables: \code{ramp\_auth\_auths}, and \code{ramp\_auth\_users}. These tables are responsible for logic related to user authentication and permissions, while all other aspects of the application are flexibly defined in files. By adding another program-specified table (ie. \code{ramp\_locks}) and using it to manage locking information, we can force specific locking relationships on the database level, as opposed to the settings level. Doing so means that locks are enforced completely regardless of any specific Table Setting, thereby making it impossible for a user to accidentally create unlocked access to the data. The downside to this approach is that it creates more work for the database administrator during the initial setup of the database. However, the extra effort is necessary to ensure a secure and stable record locking mechanism
+Our solution to this problem is to instead create a new database table which maintains the information about mapping specific data to its appropriate lock table. Currently, SMART assumes the existence of only two specific tables: \code{ramp\_auth\_auths}, and \code{ramp\_auth\_users}. These tables are responsible for logic related to user authentication and permissions, while all other aspects of the application are flexibly defined in files. By adding another program-specified table (ie. \code{ramp\_lock\_relations}) and using it to manage locking information, we can force specific locking relationships on the database level, as opposed to the settings level. Doing so means that locks are enforced completely regardless of any specific Table Setting, thereby making it impossible for a user to accidentally create unlocked access to the data. The downside to this approach is that it creates more work for the database administrator during the initial setup of the database. However, the extra effort is necessary to ensure a secure and stable record locking mechanism
 
 \newpage
 
@@ -159,25 +157,25 @@ Our solution to this problem is to instead create a new database table which mai
     \vspace{-10pt}
     \centering
     \centerline{\includegraphics[width=6.5in]{diagrams/SecondLockDesign.png}}
-    \begin{spacing}{1.0}\caption{Flow of control for the updated locking solution in SMART. We see that the program checks the \code{ramp\_locks} table for the defition of locking relatoinships, and uses those values to enforce locking at the database level.}\end{spacing}
+    \begin{spacing}{1.0}\caption{Flow of control for the updated locking solution in SMART. We see that the program checks the \code{ramp\_lock\_relations} table for the defition of locking relatoinships, and uses those values to enforce locking at the database level.}\end{spacing}
     \vspace{-20pt}
 \end{figure}
 \end{center}
 
-As shown in the figure above, the proposed \code{ramp\_locks} table contains three columns: \code{table}, \code{lock\_table}, and \code{lock\_field}. As one might expect, \code{table} and \code{lock\_table} specify the name of the table in the database and the corresponding \code{lock\_table} which will manage its locks. Beyond these basic record locking components, the \code{lock\_field} column gives this particular locking mechanism enhanced flexibility. Ultimately, the entry in \code{lock\_field} will correspond to the \code{recordId} column of the \code{lock\_table}. Because any column in the table can be used in \code{lock\_field}, this allows for both primary and foreign keys to be used as a locking trigger, which in turn creates the possibility for powerful locking schemes on tables that pull data from multiple sources. In the example shown in the figure, when a user begins editing a particular entry in the Staff table, SMART will use the value of \code{Staff.staffId} as the key in \code{lock\_person}. Because of this, if another user tries to edit the Person with that ID from any other part of SMART, they will be notified that the resource is locked. In this way, record locks are able to be persistent regardless of what particular Activity they originate from. This feature of our record locking system is the critical component in establishing a technique that can handle the requirements of SMART.
+As shown in the figure above, the proposed \code{ramp\_lock\_relations} table contains three columns: \code{table}, \code{lock\_table}, and \code{lock\_field}. As one might expect, \code{table} and \code{lock\_table} specify the name of the table in the database and the corresponding \code{lock\_table} which will manage its locks. Beyond these basic record locking components, the \code{lock\_field} column gives this particular locking mechanism enhanced flexibility. Ultimately, the entry in \code{lock\_field} will correspond to the \code{key} column of the \code{lock\_table}. Because any column in the table can be used in \code{lock\_field}, this allows for both primary and foreign keys to be used as a locking trigger, which in turn creates the possibility for powerful locking schemes on tables that pull data from multiple sources. In the example shown in the figure, when a user begins editing a particular entry in the Staff table, SMART will use the value of \code{Staff.staffId} as the key in \code{lock\_person}. Because of this, if another user tries to edit the Person with that ID from any other part of SMART, they will be notified that the resource is locked. In this way, record locks are able to be persistent regardless of what particular Activity they originate from. This feature of our record locking system is the critical component in establishing a technique that can handle the requirements of SMART.
 
 \subsection{A Unified Lock Table}
-The above management of locking relationships allows locking to be forced on the database level. However, this system still involves many necessary alterations to the database for any particular system, specifically, adding lock tables for each of the appropriate database tables. If at all possible, SMART should operate in such a way that minimal changes are necessary when adapting to a new system. To address this issue, we will continue using the same method for defining locking relationships in the \code{ramp\_locks} table, but unify the lock tables into one more required table (ie. \code{ramp\_lock\_locks}), which will store all existing locks.
+The above management of locking relationships allows locking to be forced on the database level. However, this system still involves many necessary alterations to the database for any particular system, specifically, adding lock tables for each of the appropriate database tables. If at all possible, SMART should operate in such a way that minimal changes are necessary when adapting to a new system. To address this issue, we will continue using the same method for defining locking relationships in the \code{ramp\_lock\_relations} table, but unify the lock tables into one more required table (ie. \code{ramp\_lock\_locks}), which will store all existing locks.
 
-This master lock table will contain four columns: \code{recordId}, \code{userId}, \code{table} and \code{timestamp}. The \code{recordId}, \code{userId} and \code{timestamp} will operate in the same fashion that has been described previously. The \code{table} field is the critical component which makes unifying the lock tables feasible. This will specify which table of the database holds the locked record, making it possible to differentiate different records from different tables that might happen to have the same \code{recordId}. By being able to distringuish between records in this way the system of lock tables that was previously required can be condensed down to one.
+This master lock table will contain four columns: \code{key}, \code{locker}, \code{table} and \code{lock\_time}. The \code{key}, \code{locker} and \code{lock\_time} will operate in the same fashion that has been described previously. The \code{table} field is the critical component which makes unifying the lock tables feasible. This will specify which table of the database holds the locked record, making it possible to differentiate different records from different tables that might happen to have the same \code{key}. By being able to distringuish between records in this way the system of lock tables that was previously required can be condensed down to one.
 
-Additionally, because SMART will assume the existence of \code{ramp\_lock\_locks}, less configuration is needed by an institution trying to adopt the SMART system. All that is required is to define the connections in the \code{ramp\_locks} table, and then sturdy, enforced, record-level locking will be enforced throughout the application.
+Additionally, because SMART will assume the existence of \code{ramp\_lock\_locks}, less configuration is needed by an institution trying to adopt the SMART system. All that is required is to define the connections in the \code{ramp\_lock\_relations} table, and then sturdy, enforced, record-level locking will be enforced throughout the application.
 
 \begin{center}
 \begin{figure}[h]
     \centering
     \centerline{\includegraphics[width=7in]{diagrams/UnifiedLockDesign.png}}
-    \begin{spacing}{1.0}\caption{Record locking in SMART using one, unified lock table for managing all locks. The \code{ramp\_lock\_locks} table will use the \code{lock\_table} value from \code{ramp\_locks} as the value of the \code{table} column, making it possible to distinguish records which belong to different tables in the database.}\end{spacing}
+    \begin{spacing}{1.0}\caption{Record locking in SMART using one, unified lock table for managing all locks. The \code{ramp\_lock\_locks} table will use the \code{lock\_table} value from \code{ramp\_lock\_relations} as the value of the \code{table} column, making it possible to distinguish records which belong to different tables in the database.}\end{spacing}
 \end{figure}
 \end{center}
 
@@ -192,13 +190,13 @@ One such additional feature for a pessimistic system would be a mechanism for no
 \begin{framed}
 \begin{spacing}{1.0}
 \begin{verbatim}
-function checkLock($recordId, $userId)
+function checkLock($key, $locker)
     // Access queue logic is implemented by ordering 
     // by time and selecting only the most recent lock
     $lockRow = SELECT * FROM locks
-               WHERE recordId=$recordId 
+               WHERE key=$key
                ORDER BY lock_time ASC LIMIT 1;
-    if ($lockRow['userId'] == $userId)
+    if ($lockRow['locker'] == $locker)
         return true;
     else
         return false;
@@ -207,7 +205,7 @@ function checkLock($recordId, $userId)
 \end{spacing}
 \end{framed}
 
-As opposed to our method of managing lock relationships using a separate \code{ramp\_locks} table in addition to a master lock table, it would be possible for the database to be setup in such a way that every table had its own lock table. In this case, the software would simply need knowledge of which tables were being accessed to immediately know which lock tables to use. For systems where there are numerous tables, many of which contain sensitive and very frequently accessed information, a solution such as this may be the most appropriate. While this layout contains more overhead during setup, and explicit programmatic knowledge of the database schema, it could be cleaner and more efficient, based on the particular system's needs.
+As opposed to our method of managing lock relationships using a separate \code{ramp\_lock\_relations} table in addition to a master lock table, it would be possible for the database to be setup in such a way that every table had its own lock table. In this case, the software would simply need knowledge of which tables were being accessed to immediately know which lock tables to use. For systems where there are numerous tables, many of which contain sensitive and very frequently accessed information, a solution such as this may be the most appropriate. While this layout contains more overhead during setup, and explicit programmatic knowledge of the database schema, it could be cleaner and more efficient, based on the particular system's needs.
 
 \newpage
 \subsection{Optimistic Systems}
@@ -220,17 +218,17 @@ In optimistic systems such as these, typically the program must manage version n
 \begin{framed}
 \begin{spacing}{1.0}
 \begin{verbatim}
-function submitData($recordId, $userId, $data)
+function submitData($key, $locker, $data)
     $dataRow = SELECT * FROM data_table 
-               WHERE recordId=$recordId;
+               WHERE key=$key;
     if ($dataRow['version'] == $data['version'])
         UPDATE data_table
         SET version=$data['version'], ...
-        WHERE recordId=$recordId
+        WHERE key=$key
     else
         // If there was a conflict, send them to a
         // page to sort out conflicting data
-        redirectToConflictPage($recordId, $data)
+        redirectToConflictPage($key, $data)
 
 \end{verbatim}
 \end{spacing}
@@ -244,7 +242,7 @@ One of the primary advantages present in using an optimistic system as opposed t
 \subsection{Summary}
 Throughout this paper, we have explored various potential solutions to the problem of record locking. In the two major categories of solutions - pessimistic and optimistic locking - there are a variety of different approaches that may be suited to different kinds of software systems. Additionally, for any given record locking mechanism there are a several features and alterations that can be made to fine-tune the design pattern to a system’s needs, as well as increase the usability and maintainability of whatever locking system is to be implemented.
 
-By considering the merits and disadvantages of both pessimistic and optimistic systems, it was concluded that a pessimistic approach was the most appropriate for meeting the needs of SMART. In addition to the traditional methodology of pessimistic record locking, it was necessary for us to include an additional layer of logic to preserve the dynamically defined table structure that is characteristic to SMART. To address this, we propose defining database locking relations in a required table called \code{ramp\_locks}, thereby enforcing record locking on a database level. While such a system adds slightly more overhead for an institution setting up SMART, it creates secure locking relationships that can maintain the integrity of data throughout the application.
+By considering the merits and disadvantages of both pessimistic and optimistic systems, it was concluded that a pessimistic approach was the most appropriate for meeting the needs of SMART. In addition to the traditional methodology of pessimistic record locking, it was necessary for us to include an additional layer of logic to preserve the dynamically defined table structure that is characteristic to SMART. To address this, we propose defining database locking relations in a required table called \code{ramp\_lock\_relations}, thereby enforcing record locking on a database level. While such a system adds slightly more overhead for an institution setting up SMART, it creates secure locking relationships that can maintain the integrity of data throughout the application.
 
 \subsection{The Future of SMART}
 By outlining a robust record locking system, we hope to provide the framework for a vital data management component of the SMART system. However, much still remains to be done before SMART is ready to be used in full production. Included among the remaining key functionality requriements are database audit trails, more advanced reporting, and support for searching within user-specified date ranges. Although in its current form SMART can be used by an institution to begin the arduous process of data entry, it cannot be used as a full-featured record management system until these and more components are complete.
